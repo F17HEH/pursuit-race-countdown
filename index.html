@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pursuit Race Countdown</title>
+<title>Warsash Sailing Club — Pursuit Race Countdown</title>
 <style>
   :root {
     color-scheme: dark;
@@ -205,15 +205,58 @@
     justify-content: space-between;
     margin-top: 12px;
   }
+  .sound-row {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: flex-end;
+  }
+  #soundToggle.active {
+    background: #1f8a5f;
+  }
+  .sync-panel {
+    margin-bottom: 20px;
+  }
+  .sync-panel p {
+    font-size: 0.85rem;
+    color: #9fb3c8;
+    margin: 0 0 12px;
+    line-height: 1.4;
+  }
+  .sync-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .sync-form input[type="password"] {
+    flex: 1;
+    min-width: 220px;
+    background: #0b1220;
+    border: 1px solid #2c3b52;
+    color: #eef2f7;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.9rem;
+  }
+  .sync-status {
+    font-size: 0.85rem;
+    color: #9fb3c8;
+  }
 </style>
 </head>
 <body>
 
-<h1>Warsash Dinghy Club — Pursuit Race Start Sequence</h1>
+<h1>Warsash Sailing Club — Pursuit Race Start Sequence</h1>
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="race">Race</button>
   <button class="tab-btn" data-tab="settings">Settings</button>
+</div>
+
+<div class="sound-row">
+  <button class="secondary" id="soundToggle">🔇 Sound Off</button>
 </div>
 
 <div class="view active" id="raceView">
@@ -243,6 +286,24 @@
 </div>
 
 <div class="view" id="settingsView">
+  <div class="panel sync-panel">
+    <h2>Cross-device sync</h2>
+    <p>
+      Paste a GitHub personal access token with only the <strong>gist</strong> scope to sync your
+      start-time schedule across devices via a private Gist in your own GitHub account. The token
+      is stored only in this browser (in localStorage) — it is never written into this app's code or repo.
+      Create one at
+      <a href="https://github.com/settings/tokens/new?scopes=gist&description=Pursuit%20Race%20Countdown%20Sync" target="_blank" rel="noopener">github.com/settings/tokens</a>.
+    </p>
+    <div class="sync-form">
+      <input type="password" id="ghTokenInput" placeholder="GitHub personal access token (gist scope)">
+      <button id="connectBtn">Connect</button>
+      <button class="secondary" id="syncNowBtn">Sync Now</button>
+      <button class="danger" id="disconnectBtn">Disconnect</button>
+    </div>
+    <div class="sync-status" id="syncStatus">Not connected</div>
+  </div>
+
   <div class="panel manage">
     <h2>Add / amend start times</h2>
     <div class="add-form">
@@ -292,20 +353,152 @@ const DEFAULT_STARTS = [
   ["19:10","49er",697]
 ].map(([time, cls, py]) => ({time, class: cls, py}));
 
-let starts = loadStarts();
+let { starts, updatedAt } = loadState();
 
-function loadStarts() {
+function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return structuredClone(DEFAULT_STARTS);
+  if (!raw) return { starts: structuredClone(DEFAULT_STARTS), updatedAt: Date.now() };
   try {
     const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length) return parsed;
+    if (Array.isArray(parsed) && parsed.length) {
+      return { starts: parsed, updatedAt: Date.now() }; // legacy format, no timestamp yet
+    }
+    if (parsed && Array.isArray(parsed.starts) && parsed.starts.length) {
+      return { starts: parsed.starts, updatedAt: parsed.updatedAt || Date.now() };
+    }
   } catch (e) {}
-  return structuredClone(DEFAULT_STARTS);
+  return { starts: structuredClone(DEFAULT_STARTS), updatedAt: Date.now() };
 }
 
 function saveStarts() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(starts));
+  updatedAt = Date.now();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ starts, updatedAt }));
+  schedulePush();
+}
+
+function applyRemoteState(remote) {
+  starts = remote.starts;
+  updatedAt = remote.updatedAt;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ starts, updatedAt }));
+  renderTable();
+  tick();
+}
+
+const GH_TOKEN_KEY = 'pursuitRaceGhToken';
+const GH_GIST_KEY = 'pursuitRaceGhGistId';
+const GIST_DESC = 'pursuit-race-countdown-data';
+const GIST_FILE = 'schedule.json';
+
+let ghToken = localStorage.getItem(GH_TOKEN_KEY) || '';
+let ghGistId = localStorage.getItem(GH_GIST_KEY) || '';
+let pushTimer = null;
+
+function setSyncStatus(text) {
+  const el = document.getElementById('syncStatus');
+  if (el) el.textContent = text;
+}
+
+function ghHeaders() {
+  return { 'Authorization': 'token ' + ghToken, 'Accept': 'application/vnd.github+json' };
+}
+
+async function ghFindOrCreateGist() {
+  const res = await fetch('https://api.github.com/gists', { headers: ghHeaders() });
+  if (!res.ok) throw new Error('could not list gists (' + res.status + ')');
+  const gists = await res.json();
+  const found = gists.find(g => g.description === GIST_DESC && g.files && g.files[GIST_FILE]);
+  if (found) {
+    ghGistId = found.id;
+  } else {
+    const createRes = await fetch('https://api.github.com/gists', {
+      method: 'POST',
+      headers: ghHeaders(),
+      body: JSON.stringify({
+        description: GIST_DESC,
+        public: false,
+        files: { [GIST_FILE]: { content: JSON.stringify({ starts, updatedAt }, null, 2) } }
+      })
+    });
+    if (!createRes.ok) throw new Error('could not create gist (' + createRes.status + ')');
+    ghGistId = (await createRes.json()).id;
+  }
+  localStorage.setItem(GH_GIST_KEY, ghGistId);
+}
+
+async function ghPull() {
+  const res = await fetch('https://api.github.com/gists/' + ghGistId, { headers: ghHeaders() });
+  if (!res.ok) throw new Error('pull failed (' + res.status + ')');
+  const gist = await res.json();
+  const content = gist.files[GIST_FILE] && gist.files[GIST_FILE].content;
+  return content ? JSON.parse(content) : null;
+}
+
+async function ghPush() {
+  const res = await fetch('https://api.github.com/gists/' + ghGistId, {
+    method: 'PATCH',
+    headers: ghHeaders(),
+    body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify({ starts, updatedAt }, null, 2) } } })
+  });
+  if (!res.ok) throw new Error('push failed (' + res.status + ')');
+}
+
+async function syncNow() {
+  if (!ghToken) { setSyncStatus('Not connected'); return; }
+  setSyncStatus('Syncing…');
+  try {
+    if (!ghGistId) await ghFindOrCreateGist();
+    const remote = await ghPull();
+    if (remote && remote.updatedAt > updatedAt) {
+      applyRemoteState(remote);
+      setSyncStatus('Pulled newer schedule from another device — ' + new Date().toLocaleTimeString());
+    } else if (!remote || remote.updatedAt < updatedAt) {
+      await ghPush();
+      setSyncStatus('Pushed this schedule to the cloud — ' + new Date().toLocaleTimeString());
+    } else {
+      setSyncStatus('Already up to date — ' + new Date().toLocaleTimeString());
+    }
+  } catch (e) {
+    setSyncStatus('Sync error: ' + e.message);
+  }
+}
+
+function schedulePush() {
+  if (!ghToken) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(async () => {
+    try {
+      if (!ghGistId) await ghFindOrCreateGist();
+      await ghPush();
+      setSyncStatus('Synced — ' + new Date().toLocaleTimeString());
+    } catch (e) {
+      setSyncStatus('Sync error: ' + e.message);
+    }
+  }, 1200);
+}
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  const val = document.getElementById('ghTokenInput').value.trim();
+  if (!val) { alert('Paste a GitHub token with gist scope first.'); return; }
+  ghToken = val;
+  localStorage.setItem(GH_TOKEN_KEY, ghToken);
+  document.getElementById('ghTokenInput').value = '';
+  await syncNow();
+});
+
+document.getElementById('syncNowBtn').addEventListener('click', () => syncNow());
+
+document.getElementById('disconnectBtn').addEventListener('click', () => {
+  if (!confirm('Disconnect cloud sync on this device? Your local schedule is kept, but this device will stop syncing.')) return;
+  ghToken = '';
+  ghGistId = '';
+  localStorage.removeItem(GH_TOKEN_KEY);
+  localStorage.removeItem(GH_GIST_KEY);
+  setSyncStatus('Not connected');
+});
+
+if (ghToken) {
+  setSyncStatus('Connected');
+  syncNow();
 }
 
 function sortStarts() {
@@ -351,11 +544,76 @@ function escapeHtml(str) {
   }[ch]));
 }
 
+let soundOn = false;
+let audioCtx = null;
+let lastLongBeepKey = null;
+let lastShortBeepKey = null;
+
+function beep(freq, durationMs, volume) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.value = volume;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + durationMs / 1000);
+}
+
+function updateSoundBtn() {
+  const btn = document.getElementById('soundToggle');
+  btn.textContent = soundOn ? '🔊 Sound On' : '🔇 Sound Off';
+  btn.classList.toggle('active', soundOn);
+}
+
+document.getElementById('soundToggle').addEventListener('click', () => {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  soundOn = !soundOn;
+  if (soundOn) beep(880, 150, 0.3);
+  updateSoundBtn();
+});
+updateSoundBtn();
+
+// Sound signal every minute (whether or not a class starts that minute), from the
+// first scheduled start through the last: a short beep each second for the last 5
+// seconds, then a longer beep at the top of the minute.
+function maybeSignal(now, groups) {
+  if (!soundOn || !audioCtx || !groups.length) return;
+  const first = groups[0].date;
+  const last = groups[groups.length - 1].date;
+
+  const boundary = new Date(now);
+  boundary.setMilliseconds(0);
+  if (boundary.getSeconds() !== 0) {
+    boundary.setSeconds(0);
+    boundary.setMinutes(boundary.getMinutes() + 1);
+  }
+  if (boundary < first || boundary > last) return;
+
+  const secsLeft = Math.round((boundary - now) / 1000);
+  const key = boundary.getTime();
+  if (secsLeft === 0) {
+    if (lastLongBeepKey !== key) {
+      lastLongBeepKey = key;
+      beep(660, 700, 0.35);
+    }
+  } else if (secsLeft >= 1 && secsLeft <= 5) {
+    const shortKey = key + '-' + secsLeft;
+    if (lastShortBeepKey !== shortKey) {
+      lastShortBeepKey = shortKey;
+      beep(880, 150, 0.3);
+    }
+  }
+}
+
 function tick() {
   const now = new Date();
   document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB');
 
   const groups = groupedTimes();
+  maybeSignal(now, groups);
   let lastGroup = null, nextGroup = null;
   for (const g of groups) {
     if (g.date <= now) lastGroup = g;
