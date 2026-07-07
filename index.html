@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pursuit Race Countdown</title>
+<style>
+  :root {
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #0b1220;
+    color: #eef2f7;
+    padding: 16px;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.4rem;
+    margin: 0 0 16px;
+    color: #9fd3ff;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    max-width: 900px;
+    margin: 0 auto 20px;
+  }
+  .clock {
+    font-size: 1.6rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .countdown-box {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    text-align: center;
+    background: #131c2e;
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .countdown-label {
+    font-size: 1rem;
+    color: #9fb3c8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .countdown {
+    font-size: 5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin: 8px 0;
+  }
+  .countdown.warn { color: #ffb84d; }
+  .countdown.urgent { color: #ff5c5c; }
+  .countdown.done { color: #63e6be; }
+  .status-line {
+    font-size: 1rem;
+    color: #cdd8e3;
+  }
+  .boats-row {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .boats-row { grid-template-columns: 1fr; }
+  }
+  .boats-card {
+    background: #131c2e;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .boats-card h2 {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #9fd3ff;
+  }
+  .boats-card .time {
+    font-size: 0.85rem;
+    color: #9fb3c8;
+    margin-bottom: 8px;
+  }
+  .boats-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .boat-chip {
+    background: #223047;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.85rem;
+  }
+  .empty {
+    color: #66768a;
+    font-style: italic;
+  }
+  .tabs {
+    max-width: 900px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 8px;
+  }
+  .tab-btn {
+    background: #131c2e;
+    color: #9fb3c8;
+    border: 1px solid #223047;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .tab-btn.active {
+    background: #2f6fed;
+    color: white;
+    border-color: #2f6fed;
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+  .panel {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #131c2e;
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .panel h2 {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    color: #9fd3ff;
+  }
+  .manage {
+    margin-top: 16px;
+  }
+  .add-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+  .add-form input {
+    background: #0b1220;
+    border: 1px solid #2c3b52;
+    color: #eef2f7;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.9rem;
+  }
+  .add-form input[type="time"] { width: 110px; }
+  .add-form input[type="text"] { width: 160px; }
+  .add-form input[type="number"] { width: 80px; }
+  button {
+    background: #2f6fed;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  button.secondary {
+    background: #33465f;
+  }
+  button.danger {
+    background: #7a2b2b;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid #223047;
+  }
+  th { color: #9fb3c8; font-weight: 500; }
+  tbody tr:hover { background: #0f1830; }
+  td input {
+    width: 100%;
+    background: #0b1220;
+    border: 1px solid #2c3b52;
+    color: #eef2f7;
+    border-radius: 4px;
+    padding: 4px 6px;
+  }
+  .table-wrap {
+    max-height: 420px;
+    overflow-y: auto;
+    border: 1px solid #223047;
+    border-radius: 8px;
+  }
+  .actions button { margin-right: 4px; }
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Warsash Dinghy Club — Pursuit Race Start Sequence</h1>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="race">Race</button>
+  <button class="tab-btn" data-tab="settings">Settings</button>
+</div>
+
+<div class="view active" id="raceView">
+  <div class="top">
+    <div>Current time</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+
+  <div class="countdown-box">
+    <div class="countdown-label" id="countdownLabel">Next Start</div>
+    <div class="countdown" id="countdown">--:--</div>
+    <div class="status-line" id="statusLine"></div>
+  </div>
+
+  <div class="boats-row">
+    <div class="boats-card">
+      <h2>Last Start</h2>
+      <div class="time" id="lastTime"></div>
+      <div class="boats-list" id="lastBoats"></div>
+    </div>
+    <div class="boats-card">
+      <h2>Next Start</h2>
+      <div class="time" id="nextTime"></div>
+      <div class="boats-list" id="nextBoats"></div>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="settingsView">
+  <div class="panel manage">
+    <h2>Add / amend start times</h2>
+    <div class="add-form">
+      <input type="time" id="newTime" step="60">
+      <input type="text" id="newClass" placeholder="Class name">
+      <input type="number" id="newPy" placeholder="PY (optional)">
+      <button id="addBtn">Add</button>
+      <button class="secondary" id="resetBtn">Reset to original sheet</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Start Time</th><th>Class</th><th>PY</th><th></th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="footer-row">
+      <span id="countLabel"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'pursuitRaceStarts';
+
+const DEFAULT_STARTS = [
+  ["18:30","RS FEVA XL",1248],["18:32","ILCA 4",1218],["18:33","WANDERER",1201],
+  ["18:34","MIRACLE",1196],["18:35","FIREFLY",1178],["18:35","RS NEO",1180],
+  ["18:37","GP14",1145],["18:37","ILCA 6",1156],["18:37","RS VISION",1150],
+  ["18:38","ENTERPRISE",1137],["18:38","EUROPE",1140],["18:38","RS Aero 5",1141],
+  ["18:38","SOLO",1139],["18:39","2000",1122],["18:39","STREAKER",1121],
+  ["18:40","GRADUATE",1110],["18:40","ILCA 7",1103],["18:40","LASER STRATOS",1108],
+  ["18:40","SOLUTION",1112],["18:40","WAYFARER",1107],["18:40","ZENITH",1106],
+  ["18:41","420",1100],["18:41","OK",1092],["18:41","RS Aero 6",1098],
+  ["18:41","RS VAREO",1095],["18:42","HADRON H1",1080],["18:42","SUPERNOVA",1075],
+  ["18:43","FARR 3.7",1063],["18:43","NATIONAL 12",1070],["18:43","RS Aero 7",1062],
+  ["18:44","BLAZE FIRE",1050],["18:44","FINN",1049],["18:44","HARTLEY ZENITH",1051],
+  ["18:44","RS 200",1053],["18:45","ALBACORE",1037],["18:45","HADRON H2",1045],
+  ["18:45","KESTREL",1042],["18:45","SCORPION",1042],["18:46","BLAZE",1030],
+  ["18:46","TASAR",1022],["18:47","BUZZ",1009],["18:48","MELGES 15",994],
+  ["18:48","PHANTOM",998],["18:48","RS Aero 9",1005],["18:49","MERLIN-ROCKET",980],
+  ["18:50","RS 300",965],["18:51","DEVOTI D-ONE",957],["18:51","FIREBALL",960],
+  ["18:52","RS 400",945],["18:53","OSPREY",932],["18:54","RS 600",921],
+  ["18:55","29er",900],["18:56","505",892],["18:56","BREEZE 6.0",890],
+  ["18:58","B14",858],["18:58","INTERNATIONAL CANOE",858],["19:06","SPITFIRE",745],
+  ["19:10","49er",697]
+].map(([time, cls, py]) => ({time, class: cls, py}));
+
+let starts = loadStarts();
+
+function loadStarts() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return structuredClone(DEFAULT_STARTS);
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length) return parsed;
+  } catch (e) {}
+  return structuredClone(DEFAULT_STARTS);
+}
+
+function saveStarts() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(starts));
+}
+
+function sortStarts() {
+  starts.sort((a, b) => a.time === b.time
+    ? a.class.localeCompare(b.class)
+    : a.time.localeCompare(b.time));
+}
+
+function timeToTodayDate(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d;
+}
+
+function groupedTimes() {
+  sortStarts();
+  const map = new Map();
+  for (const s of starts) {
+    if (!map.has(s.time)) map.set(s.time, []);
+    map.get(s.time).push(s.class);
+  }
+  return [...map.entries()].map(([time, classes]) => ({
+    time, classes, date: timeToTodayDate(time)
+  })).sort((a, b) => a.date - b.date);
+}
+
+function renderBoats(elTime, elBoats, group) {
+  if (!group) {
+    elTime.textContent = '';
+    elBoats.innerHTML = '<span class="empty">—</span>';
+    return;
+  }
+  elTime.textContent = group.time;
+  elBoats.innerHTML = group.classes
+    .map(c => `<span class="boat-chip">${escapeHtml(c)}</span>`)
+    .join('');
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[ch]));
+}
+
+function tick() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB');
+
+  const groups = groupedTimes();
+  let lastGroup = null, nextGroup = null;
+  for (const g of groups) {
+    if (g.date <= now) lastGroup = g;
+    else { nextGroup = g; break; }
+  }
+
+  renderBoats(document.getElementById('lastTime'), document.getElementById('lastBoats'), lastGroup);
+  renderBoats(document.getElementById('nextTime'), document.getElementById('nextBoats'), nextGroup);
+
+  const countdownEl = document.getElementById('countdown');
+  const labelEl = document.getElementById('countdownLabel');
+  const statusEl = document.getElementById('statusLine');
+  countdownEl.classList.remove('warn', 'urgent', 'done');
+
+  if (!groups.length) {
+    labelEl.textContent = 'No starts configured';
+    countdownEl.textContent = '--:--';
+    statusEl.textContent = 'Add start times below.';
+    return;
+  }
+
+  if (nextGroup) {
+    const secs = Math.max(0, Math.round((nextGroup.date - now) / 1000));
+    const mm = Math.floor(secs / 60);
+    const ss = secs % 60;
+    labelEl.textContent = lastGroup ? 'Next Start' : 'First Start';
+    countdownEl.textContent = `${mm}:${String(ss).padStart(2, '0')}`;
+    if (secs <= 10) countdownEl.classList.add('urgent');
+    else if (secs <= 30) countdownEl.classList.add('warn');
+    statusEl.textContent = `Starting at ${nextGroup.time} — ${nextGroup.classes.length} class${nextGroup.classes.length > 1 ? 'es' : ''}`;
+  } else {
+    labelEl.textContent = 'All Boats Away';
+    countdownEl.textContent = '✓';
+    countdownEl.classList.add('done');
+    statusEl.textContent = `Last start was ${lastGroup.time}`;
+  }
+}
+
+function renderTable() {
+  sortStarts();
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  starts.forEach((s, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="time" step="60" value="${s.time}" data-field="time" data-i="${i}"></td>
+      <td><input type="text" value="${escapeHtml(s.class)}" data-field="class" data-i="${i}"></td>
+      <td><input type="number" value="${s.py ?? ''}" data-field="py" data-i="${i}" style="width:70px"></td>
+      <td class="actions"><button class="danger" data-del="${i}">Delete</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('countLabel').textContent = `${starts.length} class entries`;
+
+  tbody.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const i = Number(e.target.dataset.i);
+      const field = e.target.dataset.field;
+      let val = e.target.value;
+      if (field === 'py') val = val === '' ? null : Number(val);
+      starts[i][field] = val;
+      saveStarts();
+      if (field === 'time') renderTable();
+    });
+  });
+  tbody.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = Number(e.target.dataset.del);
+      starts.splice(i, 1);
+      saveStarts();
+      renderTable();
+    });
+  });
+}
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const time = document.getElementById('newTime').value;
+  const cls = document.getElementById('newClass').value.trim();
+  const pyRaw = document.getElementById('newPy').value;
+  if (!time || !cls) { alert('Please enter a start time and class name.'); return; }
+  starts.push({ time, class: cls, py: pyRaw === '' ? null : Number(pyRaw) });
+  saveStarts();
+  document.getElementById('newTime').value = '';
+  document.getElementById('newClass').value = '';
+  document.getElementById('newPy').value = '';
+  renderTable();
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  if (!confirm('Reset all start times back to the original sheet? This discards your edits.')) return;
+  starts = structuredClone(DEFAULT_STARTS);
+  saveStarts();
+  renderTable();
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab + 'View').classList.add('active');
+  });
+});
+
+renderTable();
+tick();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
