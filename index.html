@@ -544,13 +544,15 @@ function escapeHtml(str) {
   }[ch]));
 }
 
-let soundOn = false;
+const SOUND_KEY = 'pursuitRaceSoundOn';
+let soundOn = localStorage.getItem(SOUND_KEY) !== '0'; // default on
 let audioCtx = null;
+let audioUnlocked = false;
 let lastLongBeepKey = null;
 let lastShortBeepKey = null;
 
 function beep(freq, durationMs, volume) {
-  if (!audioCtx) return;
+  if (!audioCtx || audioCtx.state !== 'running') return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.frequency.value = freq;
@@ -567,10 +569,25 @@ function updateSoundBtn() {
   btn.classList.toggle('active', soundOn);
 }
 
-document.getElementById('soundToggle').addEventListener('click', () => {
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
+  document.removeEventListener('click', unlockAudio, true);
+  document.removeEventListener('touchstart', unlockAudio, true);
+  document.removeEventListener('keydown', unlockAudio, true);
+}
+// Sound needs one interaction anywhere on the page before browsers allow it to
+// play (autoplay policy) — this arms it silently on the very first tap/click,
+// so it's not tied to hitting the sound button specifically.
+document.addEventListener('click', unlockAudio, true);
+document.addEventListener('touchstart', unlockAudio, true);
+document.addEventListener('keydown', unlockAudio, true);
+
+document.getElementById('soundToggle').addEventListener('click', () => {
   soundOn = !soundOn;
+  localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0');
   if (soundOn) beep(880, 150, 0.3);
   updateSoundBtn();
 });
