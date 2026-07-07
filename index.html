@@ -244,6 +244,62 @@
     font-size: 0.85rem;
     color: #9fb3c8;
   }
+  .find-select {
+    max-width: 900px;
+    margin: 0 auto 24px;
+  }
+  .find-select select {
+    width: 100%;
+    background: #0b1220;
+    border: 1px solid #2c3b52;
+    color: #eef2f7;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 1rem;
+  }
+  .find-adjacent {
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 8px 16px;
+  }
+  .find-adjacent .label {
+    font-size: 0.8rem;
+    color: #9fb3c8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .find-adjacent .time {
+    font-size: 1.1rem;
+    margin: 2px 0 6px;
+  }
+  .find-adjacent .boats-list {
+    justify-content: center;
+  }
+  .find-main {
+    max-width: 900px;
+    margin: 8px auto;
+    text-align: center;
+    background: #131c2e;
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .find-time {
+    font-size: 5.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #9fd3ff;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .find-main .boats-list {
+    justify-content: center;
+  }
+  .gate p {
+    font-size: 0.85rem;
+    color: #9fb3c8;
+    margin: 0 0 12px;
+  }
 </style>
 </head>
 <body>
@@ -252,6 +308,7 @@
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="race">Race</button>
+  <button class="tab-btn" data-tab="find">Find Start</button>
   <button class="tab-btn" data-tab="settings">Settings</button>
 </div>
 
@@ -285,7 +342,36 @@
   </div>
 </div>
 
+<div class="view" id="findView">
+  <div class="panel find-select">
+    <h2>Find Start Time</h2>
+    <select id="findClassSelect">
+      <option value="">Select a class…</option>
+    </select>
+  </div>
+
+  <div id="findResult" style="display:none;">
+    <div class="find-adjacent" id="findPrevious"></div>
+    <div class="find-main">
+      <div class="find-time" id="findTime"></div>
+      <div class="boats-list" id="findBoats"></div>
+    </div>
+    <div class="find-adjacent" id="findNext"></div>
+  </div>
+</div>
+
 <div class="view" id="settingsView">
+  <div class="panel gate" id="settingsGate">
+    <h2>Settings Locked</h2>
+    <p>Enter the password to add, amend, or sync start times.</p>
+    <div class="sync-form">
+      <input type="password" id="settingsPasswordInput" placeholder="Password">
+      <button id="unlockSettingsBtn">Unlock</button>
+    </div>
+    <div class="sync-status" id="settingsGateStatus"></div>
+  </div>
+
+  <div id="settingsContent" style="display:none;">
   <div class="panel sync-panel">
     <h2>Cross-device sync</h2>
     <p>
@@ -324,6 +410,7 @@
     <div class="footer-row">
       <span id="countLabel"></span>
     </div>
+  </div>
   </div>
 </div>
 
@@ -684,6 +771,7 @@ function renderTable() {
     tbody.appendChild(tr);
   });
   document.getElementById('countLabel').textContent = `${starts.length} class entries`;
+  renderFindOptions();
 
   tbody.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('change', e => {
@@ -705,6 +793,73 @@ function renderTable() {
     });
   });
 }
+
+function renderFindOptions() {
+  const select = document.getElementById('findClassSelect');
+  const current = select.value;
+  const classNames = [...new Set(starts.map(s => s.class))].sort((a, b) => a.localeCompare(b));
+  select.innerHTML = '<option value="">Select a class…</option>' +
+    classNames.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  if (classNames.includes(current)) select.value = current;
+  renderFindResult();
+}
+
+function renderAdjacentStart(el, label, group) {
+  if (!group) {
+    el.innerHTML = `<div class="label">${label}</div><div class="empty">—</div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="label">${label}</div>
+    <div class="time">${group.time}</div>
+    <div class="boats-list">${group.classes.map(c => `<span class="boat-chip">${escapeHtml(c)}</span>`).join('')}</div>
+  `;
+}
+
+function renderFindResult() {
+  const cls = document.getElementById('findClassSelect').value;
+  const resultEl = document.getElementById('findResult');
+  if (!cls) { resultEl.style.display = 'none'; return; }
+  const groups = groupedTimes();
+  const idx = groups.findIndex(g => g.classes.includes(cls));
+  if (idx === -1) { resultEl.style.display = 'none'; return; }
+  resultEl.style.display = 'block';
+  document.getElementById('findTime').textContent = groups[idx].time;
+  document.getElementById('findBoats').innerHTML = groups[idx].classes
+    .map(c => `<span class="boat-chip">${escapeHtml(c)}</span>`).join('');
+  renderAdjacentStart(document.getElementById('findPrevious'), 'Previous Start', groups[idx - 1]);
+  renderAdjacentStart(document.getElementById('findNext'), 'Next Start', groups[idx + 1]);
+}
+
+document.getElementById('findClassSelect').addEventListener('change', renderFindResult);
+
+const SETTINGS_PASSWORD = 'W$CPUR123!!';
+const SETTINGS_UNLOCK_KEY = 'pursuitRaceSettingsUnlocked';
+let settingsUnlocked = sessionStorage.getItem(SETTINGS_UNLOCK_KEY) === '1';
+
+function updateSettingsGate() {
+  document.getElementById('settingsGate').style.display = settingsUnlocked ? 'none' : 'block';
+  document.getElementById('settingsContent').style.display = settingsUnlocked ? 'block' : 'none';
+}
+
+function attemptSettingsUnlock() {
+  const input = document.getElementById('settingsPasswordInput');
+  if (input.value === SETTINGS_PASSWORD) {
+    settingsUnlocked = true;
+    sessionStorage.setItem(SETTINGS_UNLOCK_KEY, '1');
+    input.value = '';
+    document.getElementById('settingsGateStatus').textContent = '';
+    updateSettingsGate();
+  } else {
+    document.getElementById('settingsGateStatus').textContent = 'Incorrect password.';
+  }
+}
+
+document.getElementById('unlockSettingsBtn').addEventListener('click', attemptSettingsUnlock);
+document.getElementById('settingsPasswordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') attemptSettingsUnlock();
+});
+updateSettingsGate();
 
 document.getElementById('addBtn').addEventListener('click', () => {
   const time = document.getElementById('newTime').value;
