@@ -17,7 +17,7 @@ Built as a single static page with no backend — once loaded it works entirely 
 ## Repo structure
 
 ```
-pursuit-pwa/
+pursuit-race-countdown/
 ├── index.html            The entire app (markup, styles, and logic)
 ├── manifest.json         PWA manifest (name, icons, standalone display)
 ├── sw.js                 Service worker (offline caching)
@@ -80,7 +80,7 @@ The app is plain static files — any web host works, with one hard requirement:
 
 Typical S3 + CloudFront deploy:
 
-1. Upload the contents of `pursuit-pwa/` to a bucket (files at the root of the site, or all under the same prefix — the manifest, service worker, and icons must sit alongside `index.html`)
+1. Upload the contents of `pursuit-race-countdown/` to a bucket (files at the root of the site, or all under the same prefix — the manifest, service worker, and icons must sit alongside `index.html`)
 2. Front it with CloudFront for HTTPS
 3. Upload `schedule.json` to the same location on race day
 
@@ -104,7 +104,6 @@ Typical S3 + CloudFront deploy:
 Service workers don't run from `file://`, so serve the folder:
 
 ```bash
-cd pursuit-pwa
 python3 -m http.server 8000
 ```
 
