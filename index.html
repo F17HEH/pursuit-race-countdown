@@ -226,13 +226,7 @@
   .find-main .boats-list {
     justify-content: center;
   }
-  .schedule-note {
-    max-width: 900px;
-    margin: 0 auto 16px;
-    font-size: 0.8rem;
-    color: #66768a;
-    text-align: center;
-  }
+
 </style>
 </head>
 <body>
@@ -245,7 +239,7 @@
 </div>
 
 <div class="sound-row">
-  <span class="sound-note">Tap once anywhere to arm sound. iPhone: turn off the silent/mute switch.</span>
+  <span class="sound-note">iPhone: turn OFF the mute switch and turn the RINGER volume up with the side buttons (not the media/music volume) — Safari plays this at ringer volume.</span>
   <button class="secondary" id="testSoundBtn">Test Sound</button>
   <button class="secondary" id="soundToggle">🔇 Sound Off</button>
 </div>
@@ -293,10 +287,6 @@
     </div>
     <div class="find-adjacent" id="findNext"></div>
   </div>
-</div>
-
-<div class="schedule-note">
-  Schedule is read from <a href="https://github.com/kieronholt-prog/pursuit-race-countdown/blob/master/schedule.json" target="_blank" rel="noopener" style="color:#66768a;">schedule.json</a> in this app's GitHub repo — edit it there to add or amend starts.
 </div>
 
 <script>
@@ -411,6 +401,12 @@ function updateSoundBtn() {
 }
 
 async function unlockAudio() {
+  // Safari (17+) defaults web audio to the "ambient" session category, which is
+  // silenced by the mute switch and follows ringer volume, not media volume.
+  // Requesting "playback" opts out of that where supported.
+  if ('audioSession' in navigator) {
+    try { navigator.audioSession.type = 'playback'; } catch (e) {}
+  }
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') {
     // iOS Safari flips audioCtx.state to 'running' only once this promise
@@ -420,7 +416,7 @@ async function unlockAudio() {
   }
   if (audioUnlocked) return;
   audioUnlocked = true;
-  if (soundOn) beep(880, 120, 0.5);
+  if (soundOn) beep(880, 120, 1);
   document.removeEventListener('click', unlockAudio, true);
   document.removeEventListener('touchstart', unlockAudio, true);
   document.removeEventListener('keydown', unlockAudio, true);
@@ -436,15 +432,15 @@ document.getElementById('soundToggle').addEventListener('click', async () => {
   soundOn = !soundOn;
   localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0');
   await unlockAudio();
-  if (soundOn) beep(880, 150, 0.5);
+  if (soundOn) beep(880, 150, 1);
   updateSoundBtn();
 });
 updateSoundBtn();
 
 document.getElementById('testSoundBtn').addEventListener('click', async () => {
   await unlockAudio();
-  beep(880, 150, 0.5);
-  setTimeout(() => beep(660, 700, 0.6), 350);
+  beep(880, 150, 1);
+  setTimeout(() => beep(660, 700, 1), 350);
 });
 
 // Sound signal every minute (whether or not a class starts that minute), from the
@@ -468,13 +464,13 @@ function maybeSignal(now, groups) {
   if (secsLeft === 0) {
     if (lastLongBeepKey !== key) {
       lastLongBeepKey = key;
-      beep(660, 700, 0.6);
+      beep(660, 700, 1);
     }
   } else if (secsLeft >= 1 && secsLeft <= 5) {
     const shortKey = key + '-' + secsLeft;
     if (lastShortBeepKey !== shortKey) {
       lastShortBeepKey = shortKey;
-      beep(880, 150, 0.5);
+      beep(880, 150, 1);
     }
   }
 }
