@@ -389,6 +389,9 @@
       is stored only in this browser (in localStorage) — it is never written into this app's code or repo.
       Create one at
       <a href="https://github.com/settings/tokens/new?scopes=gist&description=Pursuit%20Race%20Countdown%20Sync" target="_blank" rel="noopener">github.com/settings/tokens</a>.
+      <strong>Every device needs this same step</strong> — paste the same token and tap Connect on
+      each phone/laptop/tablet you want kept in sync; a device that's never connected has no way to
+      know about changes made elsewhere.
     </p>
     <div class="sync-form">
       <input type="password" id="ghTokenInput" placeholder="GitHub personal access token (gist scope)">
@@ -679,13 +682,16 @@ function updateSoundBtn() {
   btn.classList.toggle('active', soundOn);
 }
 
-function unlockAudio() {
+async function unlockAudio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (audioCtx.state === 'suspended') {
+    // iOS Safari flips audioCtx.state to 'running' only once this promise
+    // resolves — calling beep() before awaiting it silently does nothing there,
+    // even though the same code works fine on desktop browsers.
+    try { await audioCtx.resume(); } catch (e) {}
+  }
   if (audioUnlocked) return;
   audioUnlocked = true;
-  // Some mobile browsers only fully unlock the audio pipeline once a sound has
-  // actually been produced inside the gesture, not just after resume() resolves.
   if (soundOn) beep(880, 120, 0.5);
   document.removeEventListener('click', unlockAudio, true);
   document.removeEventListener('touchstart', unlockAudio, true);
@@ -698,17 +704,17 @@ document.addEventListener('click', unlockAudio, true);
 document.addEventListener('touchstart', unlockAudio, true);
 document.addEventListener('keydown', unlockAudio, true);
 
-document.getElementById('soundToggle').addEventListener('click', () => {
+document.getElementById('soundToggle').addEventListener('click', async () => {
   soundOn = !soundOn;
   localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0');
-  unlockAudio();
+  await unlockAudio();
   if (soundOn) beep(880, 150, 0.5);
   updateSoundBtn();
 });
 updateSoundBtn();
 
-document.getElementById('testSoundBtn').addEventListener('click', () => {
-  unlockAudio();
+document.getElementById('testSoundBtn').addEventListener('click', async () => {
+  await unlockAudio();
   beep(880, 150, 0.5);
   setTimeout(() => beep(660, 700, 0.6), 350);
 });
