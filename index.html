@@ -30,16 +30,18 @@
     margin: 0 auto 20px;
   }
   .clock {
-    font-size: 1.6rem;
+    font-size: 3.2rem;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
   .countdown-box {
-    max-width: 900px;
-    margin: 0 auto 24px;
     text-align: center;
     background: #131c2e;
     border-radius: 16px;
     padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .countdown-label {
     font-size: 1rem;
@@ -65,11 +67,19 @@
     max-width: 900px;
     margin: 0 auto 24px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 16px;
+    align-items: stretch;
   }
-  @media (max-width: 640px) {
+  @media (max-width: 800px) {
     .boats-row { grid-template-columns: 1fr; }
+  }
+  .next-start-countdown {
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: #9fd3ff;
+    margin-bottom: 8px;
   }
   .boats-card {
     background: #131c2e;
@@ -243,13 +253,7 @@
 <div class="view active" id="raceView">
   <div class="top">
     <div>Current time</div>
-    <div class="clock" id="clock">--:--:--</div>
-  </div>
-
-  <div class="countdown-box">
-    <div class="countdown-label" id="countdownLabel">Next Start</div>
-    <div class="countdown" id="countdown">--:--</div>
-    <div class="status-line" id="statusLine"></div>
+    <div class="clock" id="clock">--:--</div>
   </div>
 
   <div class="boats-row">
@@ -258,12 +262,19 @@
       <div class="time" id="lastTime"></div>
       <div class="boats-list" id="lastBoats"></div>
     </div>
+    <div class="countdown-box">
+      <div class="countdown-label">Next Sound Signal</div>
+      <div class="countdown" id="countdown">--</div>
+    </div>
     <div class="boats-card">
       <h2>Next Start</h2>
       <div class="time" id="nextTime"></div>
+      <div class="next-start-countdown" id="nextStartCountdown"></div>
       <div class="boats-list" id="nextBoats"></div>
     </div>
   </div>
+
+  <div class="status-line" id="statusLine" style="text-align:center;"></div>
 </div>
 
 <div class="view" id="findView">
@@ -470,7 +481,7 @@ function maybeSignal(now, groups) {
 
 function tick() {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB');
+  document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   const groups = groupedTimes();
   maybeSignal(now, groups);
@@ -484,31 +495,33 @@ function tick() {
   renderBoats(document.getElementById('nextTime'), document.getElementById('nextBoats'), nextGroup);
 
   const countdownEl = document.getElementById('countdown');
-  const labelEl = document.getElementById('countdownLabel');
   const statusEl = document.getElementById('statusLine');
+  const nextCountdownEl = document.getElementById('nextStartCountdown');
   countdownEl.classList.remove('warn', 'urgent', 'done');
 
   if (!groups.length) {
-    labelEl.textContent = 'No starts configured';
-    countdownEl.textContent = '--:--';
+    countdownEl.textContent = '--';
+    nextCountdownEl.textContent = '';
     statusEl.textContent = 'Add starts in schedule.json.';
     return;
   }
+
+  // Seconds remaining to the top of the next minute — every minute gets a sound
+  // signal regardless of whether a class is actually starting then.
+  const secsToSignal = (60 - now.getSeconds()) % 60;
+  countdownEl.textContent = String(secsToSignal);
+  if (secsToSignal <= 3) countdownEl.classList.add('urgent');
+  else if (secsToSignal <= 10) countdownEl.classList.add('warn');
 
   if (nextGroup) {
     const secs = Math.max(0, Math.round((nextGroup.date - now) / 1000));
     const mm = Math.floor(secs / 60);
     const ss = secs % 60;
-    labelEl.textContent = lastGroup ? 'Next Start' : 'First Start';
-    countdownEl.textContent = `${mm}:${String(ss).padStart(2, '0')}`;
-    if (secs <= 10) countdownEl.classList.add('urgent');
-    else if (secs <= 30) countdownEl.classList.add('warn');
-    statusEl.textContent = `Starting at ${nextGroup.time} — ${nextGroup.classes.length} class${nextGroup.classes.length > 1 ? 'es' : ''}`;
+    nextCountdownEl.textContent = `Starts in ${mm}:${String(ss).padStart(2, '0')}`;
+    statusEl.textContent = '';
   } else {
-    labelEl.textContent = 'All Boats Away';
-    countdownEl.textContent = '✓';
-    countdownEl.classList.add('done');
-    statusEl.textContent = `Last start was ${lastGroup.time}`;
+    nextCountdownEl.textContent = '';
+    statusEl.textContent = `All boats away — last start was ${lastGroup.time}`;
   }
 }
 
