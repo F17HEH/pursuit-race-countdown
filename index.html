@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Warsash Sailing Club — Pursuit Race Countdown</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pursuit Race">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
 <style>
   :root {
     color-scheme: dark;
@@ -15,12 +24,20 @@
     background: #0b1220;
     color: #eef2f7;
     padding: 16px;
+    padding-top: max(16px, env(safe-area-inset-top));
   }
   h1 {
     text-align: center;
     font-size: 1.4rem;
-    margin: 0 0 16px;
+    margin: 0 0 4px;
     color: #9fd3ff;
+  }
+  .race-date {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #9fb3c8;
+    margin: 0 0 16px;
+    min-height: 1.2em;
   }
   .top {
     display: flex;
@@ -30,7 +47,7 @@
     margin: 0 auto 20px;
   }
   .clock {
-    font-size: 3.2rem;
+    font-size: 2.2rem;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
@@ -42,6 +59,28 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+  /* Logo styling */
+  .logo-container {
+    text-align: center;
+    margin-bottom: 10px;
+    padding-top: 8px;
+  }
+  .club-logo {
+    max-width: 120px; /* Limits the width so it looks elegant */
+    height: auto;     /* Maintains the aspect ratio */
+    display: inline-block;
+  }
+  /* Visual signal backup — flashes even if audio fails */
+  .countdown-box.flash-short { animation: flashShort 0.25s ease-out; }
+  .countdown-box.flash-long { animation: flashLong 0.8s ease-out; }
+  @keyframes flashShort {
+    0% { background: #4a5f85; }
+    100% { background: #131c2e; }
+  }
+  @keyframes flashLong {
+    0% { background: #2f6fed; }
+    100% { background: #131c2e; }
   }
   .countdown-label {
     font-size: 1rem;
@@ -231,7 +270,12 @@
 </head>
 <body>
 
+<div class="logo-container">
+  <img src="logo.png" alt="Warsash Sailing Club Logo" class="club-logo">
+</div>
+
 <h1>Warsash Sailing Club — Pursuit Race Start Sequence</h1>
+<div class="race-date" id="raceDate"></div>
 
 <div class="tabs">
   <button class="tab-btn active" data-tab="race">Race</button>
@@ -256,7 +300,7 @@
       <div class="time" id="lastTime"></div>
       <div class="boats-list" id="lastBoats"></div>
     </div>
-    <div class="countdown-box">
+    <div class="countdown-box" id="countdownBox">
       <div class="countdown-label">Next Sound Signal</div>
       <div class="countdown" id="countdown">--</div>
     </div>
@@ -314,23 +358,84 @@ const FALLBACK_STARTS = [
 ].map(([time, cls, py]) => ({time, class: cls, py}));
 
 let starts = structuredClone(FALLBACK_STARTS);
+let raceDate = todayStr();  // 'YYYY-MM-DD' the active schedule applies to
+let scheduleData = null;    // last successfully fetched schedule.json payload
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// schedule.json supports two formats:
+//   Legacy: a flat array of starts — applies to today.
+//   Multi-date: an object keyed by ISO date, e.g.
+//     { "2026-07-08": [ {time, class, py}, ... ], "2026-07-15": [ ... ] }
+// Returns a normalised {dateStr: starts[]} map, or null if unusable.
+function normaliseSchedule(data) {
+  if (Array.isArray(data)) {
+    return data.length ? { [todayStr()]: data } : null;
+  }
+  if (data && typeof data === 'object') {
+    const out = {};
+    for (const [k, v] of Object.entries(data)) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(k) && Array.isArray(v) && v.length) out[k] = v;
+    }
+    return Object.keys(out).length ? out : null;
+  }
+  return null;
+}
+
+// Prefer today's schedule; otherwise the next upcoming race day;
+// otherwise the most recent past one (so Find Start still works).
+function pickRaceDate(dates) {
+  const keys = Object.keys(dates).sort();
+  const today = todayStr();
+  if (dates[today]) return today;
+  const future = keys.find(k => k > today);
+  return future || keys[keys.length - 1];
+}
+
+function applySchedule() {
+  const dates = normaliseSchedule(scheduleData);
+  if (dates) {
+    raceDate = pickRaceDate(dates);
+    starts = dates[raceDate];
+  } else {
+    raceDate = todayStr();
+    starts = structuredClone(FALLBACK_STARTS);
+  }
+}
 
 async function loadSchedule() {
   try {
     const res = await fetch('schedule.json', { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) starts = data;
+      if (normaliseSchedule(data)) scheduleData = data;
     }
   } catch (e) {}
+  applySchedule(); // re-picks the date too, so it rolls over correctly at midnight
   renderFindOptions();
   tick();
 }
 
 setInterval(loadSchedule, 30000);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) loadSchedule();
+  if (!document.hidden) {
+    loadSchedule();
+    keepAwake(); // wake lock is released whenever the page is backgrounded — re-arm it
+  }
 });
+
+// ---- Screen wake lock: stop the phone auto-locking mid-sequence ----
+let wakeLock = null;
+async function keepAwake() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (e) {}
+}
 
 function sortStarts() {
   starts.sort((a, b) => a.time === b.time
@@ -338,11 +443,17 @@ function sortStarts() {
     : a.time.localeCompare(b.time));
 }
 
-function timeToTodayDate(hhmm) {
+function timeToDate(hhmm, dateStr) {
   const [h, m] = hhmm.split(':').map(Number);
-  const d = new Date();
-  d.setHours(h, m, 0, 0);
-  return d;
+  const [Y, Mo, D] = dateStr.split('-').map(Number);
+  return new Date(Y, Mo - 1, D, h, m, 0, 0);
+}
+
+function formatRaceDate(dateStr) {
+  const [Y, Mo, D] = dateStr.split('-').map(Number);
+  return new Date(Y, Mo - 1, D).toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
 }
 
 function groupedTimes() {
@@ -353,7 +464,7 @@ function groupedTimes() {
     map.get(s.time).push(s.class);
   }
   return [...map.entries()].map(([time, classes]) => ({
-    time, classes, date: timeToTodayDate(time)
+    time, classes, date: timeToDate(time, raceDate)
   })).sort((a, b) => a.date - b.date);
 }
 
@@ -382,16 +493,36 @@ let audioUnlocked = false;
 let lastLongBeepKey = null;
 let lastShortBeepKey = null;
 
+// Phone speakers have almost no output at low frequencies, so the tones sit
+// higher (1200Hz short / 900Hz long), use a square wave for cut-through
+// outdoors, and ramp the gain so there's no click on stop.
+const SHORT_FREQ = 1200, SHORT_MS = 150;
+const LONG_FREQ = 900, LONG_MS = 700;
+
 function beep(freq, durationMs, volume) {
   if (!audioCtx || audioCtx.state !== 'running') return;
+  const t = audioCtx.currentTime;
+  const end = t + durationMs / 1000;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
+  osc.type = 'square';
   osc.frequency.value = freq;
-  osc.type = 'sine';
-  gain.gain.value = volume;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(volume, t + 0.01);
+  gain.gain.setValueAtTime(volume, Math.max(t + 0.02, end - 0.03));
+  gain.gain.linearRampToValueAtTime(0, end);
   osc.connect(gain).connect(audioCtx.destination);
-  osc.start();
-  osc.stop(audioCtx.currentTime + durationMs / 1000);
+  osc.start(t);
+  osc.stop(end);
+}
+
+// Visual signal backup — flashes the countdown box even if audio has failed
+// (mute switch, ringer down, audio never unlocked).
+function flash(kind) {
+  const box = document.getElementById('countdownBox');
+  box.classList.remove('flash-short', 'flash-long');
+  void box.offsetWidth; // restart the animation
+  box.classList.add(kind === 'long' ? 'flash-long' : 'flash-short');
 }
 
 function updateSoundBtn() {
@@ -414,9 +545,12 @@ async function unlockAudio() {
     // even though the same code works fine on desktop browsers.
     try { await audioCtx.resume(); } catch (e) {}
   }
+  // iOS wants a user gesture before granting a wake lock on some versions —
+  // this runs on the first tap, so audio and wake lock get armed together.
+  keepAwake();
   if (audioUnlocked) return;
   audioUnlocked = true;
-  if (soundOn) beep(880, 120, 1);
+  if (soundOn) beep(SHORT_FREQ, 120, 1);
   document.removeEventListener('click', unlockAudio, true);
   document.removeEventListener('touchstart', unlockAudio, true);
   document.removeEventListener('keydown', unlockAudio, true);
@@ -432,52 +566,50 @@ document.getElementById('soundToggle').addEventListener('click', async () => {
   soundOn = !soundOn;
   localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0');
   await unlockAudio();
-  if (soundOn) beep(880, 150, 1);
+  if (soundOn) beep(SHORT_FREQ, 150, 1);
   updateSoundBtn();
 });
 updateSoundBtn();
 
 document.getElementById('testSoundBtn').addEventListener('click', async () => {
   await unlockAudio();
-  beep(880, 150, 1);
-  setTimeout(() => beep(660, 700, 1), 350);
+  beep(SHORT_FREQ, 150, 1);
+  setTimeout(() => beep(LONG_FREQ, 700, 1), 350);
 });
 
-// Sound signal every minute (whether or not a class starts that minute), from the
-// first scheduled start through the last: a short beep each second for the last 5
-// seconds, then a longer beep at the top of the minute.
+// Sound signals fire only for each class start: a short beep each second for
+// the last 5 seconds, then a long beep on the start itself. Minutes with no
+// start are silent. The visual flash fires regardless of the sound setting.
 function maybeSignal(now, groups) {
-  if (!soundOn || !audioCtx || !groups.length) return;
-  const first = groups[0].date;
-  const last = groups[groups.length - 1].date;
+  if (!groups.length) return;
+  for (const g of groups) {
+    const diff = (g.date - now) / 1000;
+    if (diff < -1) continue; // this start is already past — check the next one
 
-  const boundary = new Date(now);
-  boundary.setMilliseconds(0);
-  if (boundary.getSeconds() !== 0) {
-    boundary.setSeconds(0);
-    boundary.setMinutes(boundary.getMinutes() + 1);
-  }
-  if (boundary < first || boundary > last) return;
-
-  const secsLeft = Math.round((boundary - now) / 1000);
-  const key = boundary.getTime();
-  if (secsLeft === 0) {
-    if (lastLongBeepKey !== key) {
-      lastLongBeepKey = key;
-      beep(660, 700, 1);
+    // ceil so each signal fires at (or just after) its moment, never early —
+    // the tick runs every 250ms so worst-case lateness is one tick.
+    const secsLeft = Math.max(0, Math.ceil(diff));
+    const key = g.date.getTime();
+    if (secsLeft === 0) {
+      if (lastLongBeepKey !== key) {
+        lastLongBeepKey = key;
+        if (soundOn) beep(LONG_FREQ, LONG_MS, 1);
+        flash('long');
+      }
+    } else if (secsLeft <= 5) {
+      const shortKey = key + '-' + secsLeft;
+      if (lastShortBeepKey !== shortKey) {
+        lastShortBeepKey = shortKey;
+        if (soundOn) beep(SHORT_FREQ, SHORT_MS, 1);
+        flash('short');
+      }
     }
-  } else if (secsLeft >= 1 && secsLeft <= 5) {
-    const shortKey = key + '-' + secsLeft;
-    if (lastShortBeepKey !== shortKey) {
-      lastShortBeepKey = shortKey;
-      beep(880, 150, 1);
-    }
+    return; // only the nearest upcoming start matters
   }
 }
 
 function tick() {
   const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   const groups = groupedTimes();
   maybeSignal(now, groups);
@@ -502,23 +634,53 @@ function tick() {
     return;
   }
 
-  // Seconds remaining to the top of the next minute — every minute gets a sound
-  // signal regardless of whether a class is actually starting then.
-  const secsToSignal = (60 - now.getSeconds()) % 60;
-  countdownEl.textContent = String(secsToSignal);
-  if (secsToSignal <= 3) countdownEl.classList.add('urgent');
-  else if (secsToSignal <= 10) countdownEl.classList.add('warn');
+  const today = todayStr();
+  const raceDateEl = document.getElementById('raceDate');
+
+  // Non-today race day: show which day's schedule this is and skip the
+  // per-second countdowns — signals only ever fire on the race day itself.
+  if (raceDate !== today) {
+    raceDateEl.textContent = raceDate > today
+      ? `Next race day: ${formatRaceDate(raceDate)}`
+      : `Last race day: ${formatRaceDate(raceDate)}`;
+    countdownEl.textContent = '--';
+    nextCountdownEl.textContent = '';
+    statusEl.textContent = raceDate > today
+      ? `First signal at ${groups[0].time} on ${formatRaceDate(raceDate)}`
+      : `All boats away — last start was ${groups[groups.length - 1].time}`;
+    return;
+  }
+  raceDateEl.textContent = formatRaceDate(raceDate);
 
   if (nextGroup) {
-    const secs = Math.max(0, Math.round((nextGroup.date - now) / 1000));
+    // Both countdowns are derived from the same target with the same ceil,
+    // so they always change at exactly the same instant. (Previously one used
+    // getSeconds() — flipping at .000 — and the other Math.round — flipping
+    // at .500 — which is why they visibly ticked half a second apart.)
+    const secs = Math.max(0, Math.ceil((nextGroup.date - now) / 1000));
     const mm = Math.floor(secs / 60);
     const ss = secs % 60;
     nextCountdownEl.textContent = `Starts in ${mm}:${String(ss).padStart(2, '0')}`;
-    statusEl.textContent = '';
+    countdownEl.textContent = secs >= 60 ? `${mm}:${String(ss).padStart(2, '0')}` : String(secs);
+    if (secs <= 3) countdownEl.classList.add('urgent');
+    else if (secs <= 10) countdownEl.classList.add('warn');
+    statusEl.textContent = now < groups[0].date ? `First start at ${groups[0].time}` : '';
   } else {
     nextCountdownEl.textContent = '';
+    countdownEl.textContent = '--';
+    countdownEl.classList.add('done');
     statusEl.textContent = `All boats away — last start was ${lastGroup.time}`;
   }
+}
+
+// The clock runs on its own requestAnimationFrame loop so the milliseconds
+// read smoothly rather than jumping in 250ms steps with the logic tick.
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    + '.' + String(now.getMilliseconds()).padStart(3, '0');
+  requestAnimationFrame(updateClock);
 }
 
 function renderFindOptions() {
@@ -569,10 +731,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// ---- PWA service worker ----
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
 renderFindOptions();
 tick();
+updateClock();
 loadSchedule();
-setInterval(tick, 1000);
+keepAwake();
+// 250ms tick: setInterval at 1000ms drifts enough to fire beeps up to a second
+// late (or skip a short in the 5-4-3-2-1). The dedupe keys prevent double-fires.
+setInterval(tick, 250);
 </script>
 </body>
 </html>

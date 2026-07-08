@@ -1,297 +1,633 @@
-[
-  {
-    "time": "18:21",
-    "class": "Mirror",
-    "py": null
-  },
-  {
-    "time": "18:30",
-    "class": "RS FEVA XL",
-    "py": 1248
-  },
-  {
-    "time": "18:32",
-    "class": "ILCA 4",
-    "py": 1218
-  },
-  {
-    "time": "18:33",
-    "class": "WANDERER",
-    "py": 1201
-  },
-  {
-    "time": "18:34",
-    "class": "MIRACLE",
-    "py": 1196
-  },
-  {
-    "time": "18:35",
-    "class": "FIREFLY",
-    "py": 1178
-  },
-  {
-    "time": "18:35",
-    "class": "RS NEO",
-    "py": 1180
-  },
-  {
-    "time": "18:37",
-    "class": "GP14",
-    "py": 1145
-  },
-  {
-    "time": "18:37",
-    "class": "ILCA 6",
-    "py": 1156
-  },
-  {
-    "time": "18:37",
-    "class": "RS VISION",
-    "py": 1150
-  },
-  {
-    "time": "18:38",
-    "class": "ENTERPRISE",
-    "py": 1137
-  },
-  {
-    "time": "18:38",
-    "class": "EUROPE",
-    "py": 1140
-  },
-  {
-    "time": "18:38",
-    "class": "RS Aero 5",
-    "py": 1141
-  },
-  {
-    "time": "18:38",
-    "class": "SOLO",
-    "py": 1139
-  },
-  {
-    "time": "18:39",
-    "class": "2000",
-    "py": 1122
-  },
-  {
-    "time": "18:39",
-    "class": "STREAKER",
-    "py": 1121
-  },
-  {
-    "time": "18:40",
-    "class": "GRADUATE",
-    "py": 1110
-  },
-  {
-    "time": "18:40",
-    "class": "ILCA 7",
-    "py": 1103
-  },
-  {
-    "time": "18:40",
-    "class": "LASER STRATOS",
-    "py": 1108
-  },
-  {
-    "time": "18:40",
-    "class": "SOLUTION",
-    "py": 1112
-  },
-  {
-    "time": "18:40",
-    "class": "WAYFARER",
-    "py": 1107
-  },
-  {
-    "time": "18:40",
-    "class": "ZENITH",
-    "py": 1106
-  },
-  {
-    "time": "18:41",
-    "class": "420",
-    "py": 1100
-  },
-  {
-    "time": "18:41",
-    "class": "OK",
-    "py": 1092
-  },
-  {
-    "time": "18:41",
-    "class": "RS Aero 6",
-    "py": 1098
-  },
-  {
-    "time": "18:41",
-    "class": "RS VAREO",
-    "py": 1095
-  },
-  {
-    "time": "18:42",
-    "class": "HADRON H1",
-    "py": 1080
-  },
-  {
-    "time": "18:42",
-    "class": "SUPERNOVA",
-    "py": 1075
-  },
-  {
-    "time": "18:43",
-    "class": "FARR 3.7",
-    "py": 1063
-  },
-  {
-    "time": "18:43",
-    "class": "NATIONAL 12",
-    "py": 1070
-  },
-  {
-    "time": "18:43",
-    "class": "RS Aero 7",
-    "py": 1062
-  },
-  {
-    "time": "18:44",
-    "class": "BLAZE FIRE",
-    "py": 1050
-  },
-  {
-    "time": "18:44",
-    "class": "FINN",
-    "py": 1049
-  },
-  {
-    "time": "18:44",
-    "class": "HARTLEY ZENITH",
-    "py": 1051
-  },
-  {
-    "time": "18:44",
-    "class": "RS 200",
-    "py": 1053
-  },
-  {
-    "time": "18:45",
-    "class": "ALBACORE",
-    "py": 1037
-  },
-  {
-    "time": "18:45",
-    "class": "HADRON H2",
-    "py": 1045
-  },
-  {
-    "time": "18:45",
-    "class": "KESTREL",
-    "py": 1042
-  },
-  {
-    "time": "18:45",
-    "class": "SCORPION",
-    "py": 1042
-  },
-  {
-    "time": "18:46",
-    "class": "BLAZE",
-    "py": 1030
-  },
-  {
-    "time": "18:46",
-    "class": "TASAR",
-    "py": 1022
-  },
-  {
-    "time": "18:47",
-    "class": "BUZZ",
-    "py": 1009
-  },
-  {
-    "time": "18:48",
-    "class": "MELGES 15",
-    "py": 994
-  },
-  {
-    "time": "18:48",
-    "class": "PHANTOM",
-    "py": 998
-  },
-  {
-    "time": "18:48",
-    "class": "RS Aero 9",
-    "py": 1005
-  },
-  {
-    "time": "18:49",
-    "class": "MERLIN-ROCKET",
-    "py": 980
-  },
-  {
-    "time": "18:50",
-    "class": "RS 300",
-    "py": 965
-  },
-  {
-    "time": "18:51",
-    "class": "DEVOTI D-ONE",
-    "py": 957
-  },
-  {
-    "time": "18:51",
-    "class": "FIREBALL",
-    "py": 960
-  },
-  {
-    "time": "18:52",
-    "class": "RS 400",
-    "py": 945
-  },
-  {
-    "time": "18:53",
-    "class": "OSPREY",
-    "py": 932
-  },
-  {
-    "time": "18:54",
-    "class": "RS 600",
-    "py": 921
-  },
-  {
-    "time": "18:55",
-    "class": "29er",
-    "py": 900
-  },
-  {
-    "time": "18:56",
-    "class": "505",
-    "py": 892
-  },
-  {
-    "time": "18:56",
-    "class": "BREEZE 6.0",
-    "py": 890
-  },
-  {
-    "time": "18:58",
-    "class": "B14",
-    "py": 858
-  },
-  {
-    "time": "18:58",
-    "class": "INTERNATIONAL CANOE",
-    "py": 858
-  },
-  {
-    "time": "19:06",
-    "class": "SPITFIRE",
-    "py": 745
-  },
-  {
-    "time": "19:10",
-    "class": "49er",
-    "py": 697
-  }
-]
+{
+  "2026-07-08": [
+    {
+      "time": "16:17",
+      "class": "TEST",
+      "py": null
+    },
+    {
+      "time": "16:34",
+      "class": "TEST1",
+      "py": null
+    },
+    {
+      "time": "16:35",
+      "class": "TEST4",
+      "py": null
+    },
+    {
+      "time": "16:48",
+      "class": "TEST6",
+      "py": null
+    },
+    {
+      "time": "16:49",
+      "class": "TEST7",
+      "py": null
+    },
+    {
+      "time": "16:50",
+      "class": "TEST8",
+      "py": null
+    },
+    {
+      "time": "16:51",
+      "class": "TEST9",
+      "py": null
+    }
+  ],
+  "2026-07-09": [
+    {
+      "time": "16:17",
+      "class": "TEST",
+      "py": null
+    },
+    {
+      "time": "18:21",
+      "class": "Mirror",
+      "py": null
+    },
+    {
+      "time": "18:30",
+      "class": "RS FEVA XL",
+      "py": 1248
+    },
+    {
+      "time": "18:32",
+      "class": "ILCA 4",
+      "py": 1218
+    },
+    {
+      "time": "18:33",
+      "class": "WANDERER",
+      "py": 1201
+    },
+    {
+      "time": "18:34",
+      "class": "MIRACLE",
+      "py": 1196
+    },
+    {
+      "time": "18:35",
+      "class": "FIREFLY",
+      "py": 1178
+    },
+    {
+      "time": "18:35",
+      "class": "RS NEO",
+      "py": 1180
+    },
+    {
+      "time": "18:37",
+      "class": "GP14",
+      "py": 1145
+    },
+    {
+      "time": "18:37",
+      "class": "ILCA 6",
+      "py": 1156
+    },
+    {
+      "time": "18:37",
+      "class": "RS VISION",
+      "py": 1150
+    },
+    {
+      "time": "18:38",
+      "class": "ENTERPRISE",
+      "py": 1137
+    },
+    {
+      "time": "18:38",
+      "class": "EUROPE",
+      "py": 1140
+    },
+    {
+      "time": "18:38",
+      "class": "RS Aero 5",
+      "py": 1141
+    },
+    {
+      "time": "18:38",
+      "class": "SOLO",
+      "py": 1139
+    },
+    {
+      "time": "18:39",
+      "class": "2000",
+      "py": 1122
+    },
+    {
+      "time": "18:39",
+      "class": "STREAKER",
+      "py": 1121
+    },
+    {
+      "time": "18:40",
+      "class": "GRADUATE",
+      "py": 1110
+    },
+    {
+      "time": "18:40",
+      "class": "ILCA 7",
+      "py": 1103
+    },
+    {
+      "time": "18:40",
+      "class": "LASER STRATOS",
+      "py": 1108
+    },
+    {
+      "time": "18:40",
+      "class": "SOLUTION",
+      "py": 1112
+    },
+    {
+      "time": "18:40",
+      "class": "WAYFARER",
+      "py": 1107
+    },
+    {
+      "time": "18:40",
+      "class": "ZENITH",
+      "py": 1106
+    },
+    {
+      "time": "18:41",
+      "class": "420",
+      "py": 1100
+    },
+    {
+      "time": "18:41",
+      "class": "OK",
+      "py": 1092
+    },
+    {
+      "time": "18:41",
+      "class": "RS Aero 6",
+      "py": 1098
+    },
+    {
+      "time": "18:41",
+      "class": "RS VAREO",
+      "py": 1095
+    },
+    {
+      "time": "18:42",
+      "class": "HADRON H1",
+      "py": 1080
+    },
+    {
+      "time": "18:42",
+      "class": "SUPERNOVA",
+      "py": 1075
+    },
+    {
+      "time": "18:43",
+      "class": "FARR 3.7",
+      "py": 1063
+    },
+    {
+      "time": "18:43",
+      "class": "NATIONAL 12",
+      "py": 1070
+    },
+    {
+      "time": "18:43",
+      "class": "RS Aero 7",
+      "py": 1062
+    },
+    {
+      "time": "18:44",
+      "class": "BLAZE FIRE",
+      "py": 1050
+    },
+    {
+      "time": "18:44",
+      "class": "FINN",
+      "py": 1049
+    },
+    {
+      "time": "18:44",
+      "class": "HARTLEY ZENITH",
+      "py": 1051
+    },
+    {
+      "time": "18:44",
+      "class": "RS 200",
+      "py": 1053
+    },
+    {
+      "time": "18:45",
+      "class": "ALBACORE",
+      "py": 1037
+    },
+    {
+      "time": "18:45",
+      "class": "HADRON H2",
+      "py": 1045
+    },
+    {
+      "time": "18:45",
+      "class": "KESTREL",
+      "py": 1042
+    },
+    {
+      "time": "18:45",
+      "class": "SCORPION",
+      "py": 1042
+    },
+    {
+      "time": "18:46",
+      "class": "BLAZE",
+      "py": 1030
+    },
+    {
+      "time": "18:46",
+      "class": "TASAR",
+      "py": 1022
+    },
+    {
+      "time": "18:47",
+      "class": "BUZZ",
+      "py": 1009
+    },
+    {
+      "time": "18:48",
+      "class": "MELGES 15",
+      "py": 994
+    },
+    {
+      "time": "18:48",
+      "class": "PHANTOM",
+      "py": 998
+    },
+    {
+      "time": "18:48",
+      "class": "RS Aero 9",
+      "py": 1005
+    },
+    {
+      "time": "18:49",
+      "class": "MERLIN-ROCKET",
+      "py": 980
+    },
+    {
+      "time": "18:50",
+      "class": "RS 300",
+      "py": 965
+    },
+    {
+      "time": "18:51",
+      "class": "DEVOTI D-ONE",
+      "py": 957
+    },
+    {
+      "time": "18:51",
+      "class": "FIREBALL",
+      "py": 960
+    },
+    {
+      "time": "18:52",
+      "class": "RS 400",
+      "py": 945
+    },
+    {
+      "time": "18:53",
+      "class": "OSPREY",
+      "py": 932
+    },
+    {
+      "time": "18:54",
+      "class": "RS 600",
+      "py": 921
+    },
+    {
+      "time": "18:55",
+      "class": "29er",
+      "py": 900
+    },
+    {
+      "time": "18:56",
+      "class": "505",
+      "py": 892
+    },
+    {
+      "time": "18:56",
+      "class": "BREEZE 6.0",
+      "py": 890
+    },
+    {
+      "time": "18:58",
+      "class": "B14",
+      "py": 858
+    },
+    {
+      "time": "18:58",
+      "class": "INTERNATIONAL CANOE",
+      "py": 858
+    },
+    {
+      "time": "19:06",
+      "class": "SPITFIRE",
+      "py": 745
+    },
+    {
+      "time": "19:10",
+      "class": "49er",
+      "py": 697
+    }
+  ],
+  "2026-07-9": [
+    {
+      "time": "18:30",
+      "class": "RS FEVA XL",
+      "py": 1248
+    },
+    {
+      "time": "18:32",
+      "class": "ILCA 4",
+      "py": 1218
+    },
+    {
+      "time": "18:33",
+      "class": "WANDERER",
+      "py": 1201
+    },
+    {
+      "time": "18:34",
+      "class": "MIRACLE",
+      "py": 1196
+    },
+    {
+      "time": "18:35",
+      "class": "FIREFLY",
+      "py": 1178
+    },
+    {
+      "time": "18:35",
+      "class": "RS NEO",
+      "py": 1180
+    },
+    {
+      "time": "18:37",
+      "class": "GP14",
+      "py": 1145
+    },
+    {
+      "time": "18:37",
+      "class": "ILCA 6",
+      "py": 1156
+    },
+    {
+      "time": "18:37",
+      "class": "RS VISION",
+      "py": 1150
+    },
+    {
+      "time": "18:38",
+      "class": "ENTERPRISE",
+      "py": 1137
+    },
+    {
+      "time": "18:38",
+      "class": "EUROPE",
+      "py": 1140
+    },
+    {
+      "time": "18:38",
+      "class": "RS Aero 5",
+      "py": 1141
+    },
+    {
+      "time": "18:38",
+      "class": "SOLO",
+      "py": 1139
+    },
+    {
+      "time": "18:39",
+      "class": "2000",
+      "py": 1122
+    },
+    {
+      "time": "18:39",
+      "class": "STREAKER",
+      "py": 1121
+    },
+    {
+      "time": "18:40",
+      "class": "GRADUATE",
+      "py": 1110
+    },
+    {
+      "time": "18:40",
+      "class": "ILCA 7",
+      "py": 1103
+    },
+    {
+      "time": "18:40",
+      "class": "LASER STRATOS",
+      "py": 1108
+    },
+    {
+      "time": "18:40",
+      "class": "SOLUTION",
+      "py": 1112
+    },
+    {
+      "time": "18:40",
+      "class": "WAYFARER",
+      "py": 1107
+    },
+    {
+      "time": "18:40",
+      "class": "ZENITH",
+      "py": 1106
+    },
+    {
+      "time": "18:41",
+      "class": "420",
+      "py": 1100
+    },
+    {
+      "time": "18:41",
+      "class": "OK",
+      "py": 1092
+    },
+    {
+      "time": "18:41",
+      "class": "RS Aero 6",
+      "py": 1098
+    },
+    {
+      "time": "18:41",
+      "class": "RS VAREO",
+      "py": 1095
+    },
+    {
+      "time": "18:42",
+      "class": "HADRON H1",
+      "py": 1080
+    },
+    {
+      "time": "18:42",
+      "class": "SUPERNOVA",
+      "py": 1075
+    },
+    {
+      "time": "18:43",
+      "class": "FARR 3.7",
+      "py": 1063
+    },
+    {
+      "time": "18:43",
+      "class": "NATIONAL 12",
+      "py": 1070
+    },
+    {
+      "time": "18:43",
+      "class": "RS Aero 7",
+      "py": 1062
+    },
+    {
+      "time": "18:44",
+      "class": "BLAZE FIRE",
+      "py": 1050
+    },
+    {
+      "time": "18:44",
+      "class": "FINN",
+      "py": 1049
+    },
+    {
+      "time": "18:44",
+      "class": "HARTLEY ZENITH",
+      "py": 1051
+    },
+    {
+      "time": "18:44",
+      "class": "RS 200",
+      "py": 1053
+    },
+    {
+      "time": "18:45",
+      "class": "ALBACORE",
+      "py": 1037
+    },
+    {
+      "time": "18:45",
+      "class": "HADRON H2",
+      "py": 1045
+    },
+    {
+      "time": "18:45",
+      "class": "KESTREL",
+      "py": 1042
+    },
+    {
+      "time": "18:45",
+      "class": "SCORPION",
+      "py": 1042
+    },
+    {
+      "time": "18:46",
+      "class": "BLAZE",
+      "py": 1030
+    },
+    {
+      "time": "18:46",
+      "class": "TASAR",
+      "py": 1022
+    },
+    {
+      "time": "18:47",
+      "class": "BUZZ",
+      "py": 1009
+    },
+    {
+      "time": "18:48",
+      "class": "MELGES 15",
+      "py": 994
+    },
+    {
+      "time": "18:48",
+      "class": "PHANTOM",
+      "py": 998
+    },
+    {
+      "time": "18:48",
+      "class": "RS Aero 9",
+      "py": 1005
+    },
+    {
+      "time": "18:49",
+      "class": "MERLIN-ROCKET",
+      "py": 980
+    },
+    {
+      "time": "18:50",
+      "class": "RS 300",
+      "py": 965
+    },
+    {
+      "time": "18:51",
+      "class": "DEVOTI D-ONE",
+      "py": 957
+    },
+    {
+      "time": "18:51",
+      "class": "FIREBALL",
+      "py": 960
+    },
+    {
+      "time": "18:52",
+      "class": "RS 400",
+      "py": 945
+    },
+    {
+      "time": "18:53",
+      "class": "OSPREY",
+      "py": 932
+    },
+    {
+      "time": "18:54",
+      "class": "RS 600",
+      "py": 921
+    },
+    {
+      "time": "18:55",
+      "class": "29er",
+      "py": 900
+    },
+    {
+      "time": "18:56",
+      "class": "505",
+      "py": 892
+    },
+    {
+      "time": "18:56",
+      "class": "BREEZE 6.0",
+      "py": 890
+    },
+    {
+      "time": "18:58",
+      "class": "B14",
+      "py": 858
+    },
+    {
+      "time": "18:58",
+      "class": "INTERNATIONAL CANOE",
+      "py": 858
+    },
+    {
+      "time": "19:06",
+      "class": "SPITFIRE",
+      "py": 745
+    },
+    {
+      "time": "19:10",
+      "class": "49er",
+      "py": 697
+    }
+  ]
+}
