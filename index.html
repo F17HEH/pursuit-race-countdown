@@ -137,27 +137,6 @@
     font-size: 1rem;
     color: #9fd3ff;
   }
-  .manage {
-    margin-top: 16px;
-  }
-  .add-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 16px;
-    align-items: center;
-  }
-  .add-form input {
-    background: #0b1220;
-    border: 1px solid #2c3b52;
-    color: #eef2f7;
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 0.9rem;
-  }
-  .add-form input[type="time"] { width: 110px; }
-  .add-form input[type="text"] { width: 160px; }
-  .add-form input[type="number"] { width: 80px; }
   button {
     background: #2f6fed;
     color: white;
@@ -169,41 +148,6 @@
   }
   button.secondary {
     background: #33465f;
-  }
-  button.danger {
-    background: #7a2b2b;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-  }
-  th, td {
-    text-align: left;
-    padding: 6px 8px;
-    border-bottom: 1px solid #223047;
-  }
-  th { color: #9fb3c8; font-weight: 500; }
-  tbody tr:hover { background: #0f1830; }
-  td input {
-    width: 100%;
-    background: #0b1220;
-    border: 1px solid #2c3b52;
-    color: #eef2f7;
-    border-radius: 4px;
-    padding: 4px 6px;
-  }
-  .table-wrap {
-    max-height: 420px;
-    overflow-y: auto;
-    border: 1px solid #223047;
-    border-radius: 8px;
-  }
-  .actions button { margin-right: 4px; }
-  .footer-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 12px;
   }
   .sound-row {
     max-width: 900px;
@@ -220,36 +164,6 @@
   }
   #soundToggle.active {
     background: #1f8a5f;
-  }
-  .sync-panel {
-    margin-bottom: 20px;
-  }
-  .sync-panel p {
-    font-size: 0.85rem;
-    color: #9fb3c8;
-    margin: 0 0 12px;
-    line-height: 1.4;
-  }
-  .sync-form {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-  .sync-form input[type="password"] {
-    flex: 1;
-    min-width: 220px;
-    background: #0b1220;
-    border: 1px solid #2c3b52;
-    color: #eef2f7;
-    border-radius: 6px;
-    padding: 6px 8px;
-    font-size: 0.9rem;
-  }
-  .sync-status {
-    font-size: 0.85rem;
-    color: #9fb3c8;
   }
   .find-select {
     max-width: 900px;
@@ -302,10 +216,12 @@
   .find-main .boats-list {
     justify-content: center;
   }
-  .gate p {
-    font-size: 0.85rem;
-    color: #9fb3c8;
-    margin: 0 0 12px;
+  .schedule-note {
+    max-width: 900px;
+    margin: 0 auto 16px;
+    font-size: 0.8rem;
+    color: #66768a;
+    text-align: center;
   }
 </style>
 </head>
@@ -316,7 +232,6 @@
 <div class="tabs">
   <button class="tab-btn active" data-tab="race">Race</button>
   <button class="tab-btn" data-tab="find">Find Start</button>
-  <button class="tab-btn" data-tab="settings">Settings</button>
 </div>
 
 <div class="sound-row">
@@ -369,67 +284,12 @@
   </div>
 </div>
 
-<div class="view" id="settingsView">
-  <div class="panel gate" id="settingsGate">
-    <h2>Settings Locked</h2>
-    <p>Enter the password to add, amend, or sync start times.</p>
-    <div class="sync-form">
-      <input type="password" id="settingsPasswordInput" placeholder="Password">
-      <button id="unlockSettingsBtn">Unlock</button>
-    </div>
-    <div class="sync-status" id="settingsGateStatus"></div>
-  </div>
-
-  <div id="settingsContent" style="display:none;">
-  <div class="panel sync-panel">
-    <h2>Cross-device sync</h2>
-    <p>
-      Paste a GitHub personal access token with only the <strong>gist</strong> scope to sync your
-      start-time schedule across devices via a private Gist in your own GitHub account. The token
-      is stored only in this browser (in localStorage) — it is never written into this app's code or repo.
-      Create one at
-      <a href="https://github.com/settings/tokens/new?scopes=gist&description=Pursuit%20Race%20Countdown%20Sync" target="_blank" rel="noopener">github.com/settings/tokens</a>.
-      <strong>Every device needs this same step</strong> — paste the same token and tap Connect on
-      each phone/laptop/tablet you want kept in sync; a device that's never connected has no way to
-      know about changes made elsewhere.
-    </p>
-    <div class="sync-form">
-      <input type="password" id="ghTokenInput" placeholder="GitHub personal access token (gist scope)">
-      <button id="connectBtn">Connect</button>
-      <button class="secondary" id="syncNowBtn">Sync Now</button>
-      <button class="danger" id="disconnectBtn">Disconnect</button>
-    </div>
-    <div class="sync-status" id="syncStatus">Not connected</div>
-  </div>
-
-  <div class="panel manage">
-    <h2>Add / amend start times</h2>
-    <div class="add-form">
-      <input type="time" id="newTime" step="60">
-      <input type="text" id="newClass" placeholder="Class name">
-      <input type="number" id="newPy" placeholder="PY (optional)">
-      <button id="addBtn">Add</button>
-      <button class="secondary" id="resetBtn">Reset to original sheet</button>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Start Time</th><th>Class</th><th>PY</th><th></th></tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <div class="footer-row">
-      <span id="countLabel"></span>
-    </div>
-  </div>
-  </div>
+<div class="schedule-note">
+  Schedule is read from <a href="https://github.com/kieronholt-prog/pursuit-race-countdown/blob/master/schedule.json" target="_blank" rel="noopener" style="color:#66768a;">schedule.json</a> in this app's GitHub repo — edit it there to add or amend starts.
 </div>
 
 <script>
-const STORAGE_KEY = 'pursuitRaceStarts';
-
-const DEFAULT_STARTS = [
+const FALLBACK_STARTS = [
   ["18:30","RS FEVA XL",1248],["18:32","ILCA 4",1218],["18:33","WANDERER",1201],
   ["18:34","MIRACLE",1196],["18:35","FIREFLY",1178],["18:35","RS NEO",1180],
   ["18:37","GP14",1145],["18:37","ILCA 6",1156],["18:37","RS VISION",1150],
@@ -452,167 +312,24 @@ const DEFAULT_STARTS = [
   ["19:10","49er",697]
 ].map(([time, cls, py]) => ({time, class: cls, py}));
 
-let { starts, updatedAt } = loadState();
+let starts = structuredClone(FALLBACK_STARTS);
 
-function loadState() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return { starts: structuredClone(DEFAULT_STARTS), updatedAt: Date.now() };
+async function loadSchedule() {
   try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length) {
-      return { starts: parsed, updatedAt: Date.now() }; // legacy format, no timestamp yet
-    }
-    if (parsed && Array.isArray(parsed.starts) && parsed.starts.length) {
-      return { starts: parsed.starts, updatedAt: parsed.updatedAt || Date.now() };
+    const res = await fetch('schedule.json', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) starts = data;
     }
   } catch (e) {}
-  return { starts: structuredClone(DEFAULT_STARTS), updatedAt: Date.now() };
-}
-
-function saveStarts() {
-  updatedAt = Date.now();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ starts, updatedAt }));
-  schedulePush();
-}
-
-function applyRemoteState(remote) {
-  starts = remote.starts;
-  updatedAt = remote.updatedAt;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ starts, updatedAt }));
-  renderTable();
+  renderFindOptions();
   tick();
 }
 
-const GH_TOKEN_KEY = 'pursuitRaceGhToken';
-const GH_GIST_KEY = 'pursuitRaceGhGistId';
-const GIST_DESC = 'pursuit-race-countdown-data';
-const GIST_FILE = 'schedule.json';
-
-let ghToken = localStorage.getItem(GH_TOKEN_KEY) || '';
-let ghGistId = localStorage.getItem(GH_GIST_KEY) || '';
-let pushTimer = null;
-
-function setSyncStatus(text) {
-  const el = document.getElementById('syncStatus');
-  if (el) el.textContent = text;
-}
-
-function ghHeaders() {
-  return { 'Authorization': 'token ' + ghToken, 'Accept': 'application/vnd.github+json' };
-}
-
-async function ghFindOrCreateGist() {
-  const res = await fetch('https://api.github.com/gists', { headers: ghHeaders() });
-  if (!res.ok) throw new Error('could not list gists (' + res.status + ')');
-  const gists = await res.json();
-  const found = gists.find(g => g.description === GIST_DESC && g.files && g.files[GIST_FILE]);
-  if (found) {
-    ghGistId = found.id;
-  } else {
-    const createRes = await fetch('https://api.github.com/gists', {
-      method: 'POST',
-      headers: ghHeaders(),
-      body: JSON.stringify({
-        description: GIST_DESC,
-        public: false,
-        files: { [GIST_FILE]: { content: JSON.stringify({ starts, updatedAt }, null, 2) } }
-      })
-    });
-    if (!createRes.ok) throw new Error('could not create gist (' + createRes.status + ')');
-    ghGistId = (await createRes.json()).id;
-  }
-  localStorage.setItem(GH_GIST_KEY, ghGistId);
-}
-
-async function ghPull() {
-  const res = await fetch('https://api.github.com/gists/' + ghGistId, { headers: ghHeaders() });
-  if (!res.ok) throw new Error('pull failed (' + res.status + ')');
-  const gist = await res.json();
-  const content = gist.files[GIST_FILE] && gist.files[GIST_FILE].content;
-  return content ? JSON.parse(content) : null;
-}
-
-async function ghPush() {
-  const res = await fetch('https://api.github.com/gists/' + ghGistId, {
-    method: 'PATCH',
-    headers: ghHeaders(),
-    body: JSON.stringify({ files: { [GIST_FILE]: { content: JSON.stringify({ starts, updatedAt }, null, 2) } } })
-  });
-  if (!res.ok) throw new Error('push failed (' + res.status + ')');
-}
-
-async function syncNow() {
-  if (!ghToken) { setSyncStatus('Not connected'); return; }
-  setSyncStatus('Syncing…');
-  try {
-    if (!ghGistId) await ghFindOrCreateGist();
-    const remote = await ghPull();
-    if (remote && remote.updatedAt > updatedAt) {
-      applyRemoteState(remote);
-      setSyncStatus('Pulled newer schedule from another device — ' + new Date().toLocaleTimeString());
-    } else if (!remote || remote.updatedAt < updatedAt) {
-      await ghPush();
-      setSyncStatus('Pushed this schedule to the cloud — ' + new Date().toLocaleTimeString());
-    } else {
-      setSyncStatus('Already up to date — ' + new Date().toLocaleTimeString());
-    }
-  } catch (e) {
-    setSyncStatus('Sync error: ' + e.message);
-  }
-}
-
-function schedulePush() {
-  if (!ghToken) return;
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(async () => {
-    try {
-      if (!ghGistId) await ghFindOrCreateGist();
-      await ghPush();
-      setSyncStatus('Synced — ' + new Date().toLocaleTimeString());
-    } catch (e) {
-      setSyncStatus('Sync error: ' + e.message);
-    }
-  }, 1200);
-}
-
-document.getElementById('connectBtn').addEventListener('click', async () => {
-  const val = document.getElementById('ghTokenInput').value.trim();
-  if (!val) { alert('Paste a GitHub token with gist scope first.'); return; }
-  ghToken = val;
-  localStorage.setItem(GH_TOKEN_KEY, ghToken);
-  document.getElementById('ghTokenInput').value = '';
-  await syncNow();
-  startSyncPolling();
-});
-
-document.getElementById('syncNowBtn').addEventListener('click', () => syncNow());
-
-document.getElementById('disconnectBtn').addEventListener('click', () => {
-  if (!confirm('Disconnect cloud sync on this device? Your local schedule is kept, but this device will stop syncing.')) return;
-  ghToken = '';
-  ghGistId = '';
-  localStorage.removeItem(GH_TOKEN_KEY);
-  localStorage.removeItem(GH_GIST_KEY);
-  clearInterval(syncPollTimer);
-  syncPollTimer = null;
-  setSyncStatus('Not connected');
-});
-
-let syncPollTimer = null;
-function startSyncPolling() {
-  if (syncPollTimer) return;
-  syncPollTimer = setInterval(() => { if (ghToken) syncNow(); }, 20000);
-}
-
+setInterval(loadSchedule, 30000);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && ghToken) syncNow();
+  if (!document.hidden) loadSchedule();
 });
-
-if (ghToken) {
-  setSyncStatus('Connected');
-  syncNow();
-  startSyncPolling();
-}
 
 function sortStarts() {
   starts.sort((a, b) => a.time === b.time
@@ -774,7 +491,7 @@ function tick() {
   if (!groups.length) {
     labelEl.textContent = 'No starts configured';
     countdownEl.textContent = '--:--';
-    statusEl.textContent = 'Add start times below.';
+    statusEl.textContent = 'Add starts in schedule.json.';
     return;
   }
 
@@ -793,44 +510,6 @@ function tick() {
     countdownEl.classList.add('done');
     statusEl.textContent = `Last start was ${lastGroup.time}`;
   }
-}
-
-function renderTable() {
-  sortStarts();
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-  starts.forEach((s, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="time" step="60" value="${s.time}" data-field="time" data-i="${i}"></td>
-      <td><input type="text" value="${escapeHtml(s.class)}" data-field="class" data-i="${i}"></td>
-      <td><input type="number" value="${s.py ?? ''}" data-field="py" data-i="${i}" style="width:70px"></td>
-      <td class="actions"><button class="danger" data-del="${i}">Delete</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-  document.getElementById('countLabel').textContent = `${starts.length} class entries`;
-  renderFindOptions();
-
-  tbody.querySelectorAll('input').forEach(inp => {
-    inp.addEventListener('change', e => {
-      const i = Number(e.target.dataset.i);
-      const field = e.target.dataset.field;
-      let val = e.target.value;
-      if (field === 'py') val = val === '' ? null : Number(val);
-      starts[i][field] = val;
-      saveStarts();
-      if (field === 'time') renderTable();
-    });
-  });
-  tbody.querySelectorAll('[data-del]').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const i = Number(e.target.dataset.del);
-      starts.splice(i, 1);
-      saveStarts();
-      renderTable();
-    });
-  });
 }
 
 function renderFindOptions() {
@@ -872,54 +551,6 @@ function renderFindResult() {
 
 document.getElementById('findClassSelect').addEventListener('change', renderFindResult);
 
-const SETTINGS_PASSWORD = 'W$CPUR123!!';
-const SETTINGS_UNLOCK_KEY = 'pursuitRaceSettingsUnlocked';
-let settingsUnlocked = sessionStorage.getItem(SETTINGS_UNLOCK_KEY) === '1';
-
-function updateSettingsGate() {
-  document.getElementById('settingsGate').style.display = settingsUnlocked ? 'none' : 'block';
-  document.getElementById('settingsContent').style.display = settingsUnlocked ? 'block' : 'none';
-}
-
-function attemptSettingsUnlock() {
-  const input = document.getElementById('settingsPasswordInput');
-  if (input.value === SETTINGS_PASSWORD) {
-    settingsUnlocked = true;
-    sessionStorage.setItem(SETTINGS_UNLOCK_KEY, '1');
-    input.value = '';
-    document.getElementById('settingsGateStatus').textContent = '';
-    updateSettingsGate();
-  } else {
-    document.getElementById('settingsGateStatus').textContent = 'Incorrect password.';
-  }
-}
-
-document.getElementById('unlockSettingsBtn').addEventListener('click', attemptSettingsUnlock);
-document.getElementById('settingsPasswordInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') attemptSettingsUnlock();
-});
-updateSettingsGate();
-
-document.getElementById('addBtn').addEventListener('click', () => {
-  const time = document.getElementById('newTime').value;
-  const cls = document.getElementById('newClass').value.trim();
-  const pyRaw = document.getElementById('newPy').value;
-  if (!time || !cls) { alert('Please enter a start time and class name.'); return; }
-  starts.push({ time, class: cls, py: pyRaw === '' ? null : Number(pyRaw) });
-  saveStarts();
-  document.getElementById('newTime').value = '';
-  document.getElementById('newClass').value = '';
-  document.getElementById('newPy').value = '';
-  renderTable();
-});
-
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if (!confirm('Reset all start times back to the original sheet? This discards your edits.')) return;
-  starts = structuredClone(DEFAULT_STARTS);
-  saveStarts();
-  renderTable();
-});
-
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -929,8 +560,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-renderTable();
+renderFindOptions();
 tick();
+loadSchedule();
 setInterval(tick, 1000);
 </script>
 </body>
