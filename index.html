@@ -209,7 +209,14 @@
     max-width: 900px;
     margin: 0 auto 20px;
     display: flex;
+    align-items: center;
     justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sound-note {
+    font-size: 0.75rem;
+    color: #9fb3c8;
   }
   #soundToggle.active {
     background: #1f8a5f;
@@ -313,6 +320,8 @@
 </div>
 
 <div class="sound-row">
+  <span class="sound-note">Tap once anywhere to arm sound. iPhone: turn off the silent/mute switch.</span>
+  <button class="secondary" id="testSoundBtn">Test Sound</button>
   <button class="secondary" id="soundToggle">🔇 Sound Off</button>
 </div>
 
@@ -570,6 +579,7 @@ document.getElementById('connectBtn').addEventListener('click', async () => {
   localStorage.setItem(GH_TOKEN_KEY, ghToken);
   document.getElementById('ghTokenInput').value = '';
   await syncNow();
+  startSyncPolling();
 });
 
 document.getElementById('syncNowBtn').addEventListener('click', () => syncNow());
@@ -580,12 +590,25 @@ document.getElementById('disconnectBtn').addEventListener('click', () => {
   ghGistId = '';
   localStorage.removeItem(GH_TOKEN_KEY);
   localStorage.removeItem(GH_GIST_KEY);
+  clearInterval(syncPollTimer);
+  syncPollTimer = null;
   setSyncStatus('Not connected');
+});
+
+let syncPollTimer = null;
+function startSyncPolling() {
+  if (syncPollTimer) return;
+  syncPollTimer = setInterval(() => { if (ghToken) syncNow(); }, 20000);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && ghToken) syncNow();
 });
 
 if (ghToken) {
   setSyncStatus('Connected');
   syncNow();
+  startSyncPolling();
 }
 
 function sortStarts() {
@@ -657,10 +680,13 @@ function updateSoundBtn() {
 }
 
 function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  // Some mobile browsers only fully unlock the audio pipeline once a sound has
+  // actually been produced inside the gesture, not just after resume() resolves.
+  if (soundOn) beep(880, 120, 0.5);
   document.removeEventListener('click', unlockAudio, true);
   document.removeEventListener('touchstart', unlockAudio, true);
   document.removeEventListener('keydown', unlockAudio, true);
@@ -675,10 +701,17 @@ document.addEventListener('keydown', unlockAudio, true);
 document.getElementById('soundToggle').addEventListener('click', () => {
   soundOn = !soundOn;
   localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0');
-  if (soundOn) beep(880, 150, 0.3);
+  unlockAudio();
+  if (soundOn) beep(880, 150, 0.5);
   updateSoundBtn();
 });
 updateSoundBtn();
+
+document.getElementById('testSoundBtn').addEventListener('click', () => {
+  unlockAudio();
+  beep(880, 150, 0.5);
+  setTimeout(() => beep(660, 700, 0.6), 350);
+});
 
 // Sound signal every minute (whether or not a class starts that minute), from the
 // first scheduled start through the last: a short beep each second for the last 5
@@ -701,13 +734,13 @@ function maybeSignal(now, groups) {
   if (secsLeft === 0) {
     if (lastLongBeepKey !== key) {
       lastLongBeepKey = key;
-      beep(660, 700, 0.35);
+      beep(660, 700, 0.6);
     }
   } else if (secsLeft >= 1 && secsLeft <= 5) {
     const shortKey = key + '-' + secsLeft;
     if (lastShortBeepKey !== shortKey) {
       lastShortBeepKey = shortKey;
-      beep(880, 150, 0.3);
+      beep(880, 150, 0.5);
     }
   }
 }
